@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TasPro | Store Mockup Builder</title>
+<style>
+  :root{
+    --navy:#123a5e;
+    --line:#dde5ec;
+    --panel-bg:#ffffff;
+    --page-bg:#f2f6f9;
+    --canvas-bg:#e9eef3;
+    --text:#1b2430;
+    --muted:#556;
+    --note:#8894a0;
+    --input-bg:#f8fafc;
+    --chip-bg:#e8f1f8;
+    --ghost-bg:#ffffff;
+    --ghost-text:#1b2430;
+    --btn-text:#ffffff;
+    color-scheme: light;
+  }
+  html.dark{
+    --navy:#5ba3d9;
+    --line:#2a3544;
+    --panel-bg:#121a24;
+    --page-bg:#0b1220;
+    --canvas-bg:#0f1722;
+    --text:#e8eef5;
+    --muted:#a8b3c0;
+    --note:#8b98a8;
+    --input-bg:#1a2432;
+    --chip-bg:#1e2d3f;
+    --ghost-bg:#1a2432;
+    --ghost-text:#e8eef5;
+    --btn-text:#ffffff;
+    color-scheme: dark;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Segoe UI', Tahoma, sans-serif;
+    background:var(--page-bg); color:var(--text);
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  .layout{
+    display:flex; flex-wrap:nowrap; align-items:stretch;
+    min-height:100vh; width:100%; overflow:hidden;
+  }
+  .panel{
+    width:340px; min-width:340px; max-width:340px; flex:0 0 340px;
+    background:var(--panel-bg);
+    padding:20px; border-inline-end:1px solid var(--line);
+    display:flex; flex-direction:column; gap:14px;
+    height:100vh; overflow:auto; position:sticky; top:0; z-index:50;
+  }
+  .panel-top{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  .panel h2{margin:0; font-size:16px; color:var(--navy);}
+  .toggles{display:flex; gap:6px;}
+  .toggle-btn{
+    border:1px solid var(--line); background:var(--ghost-bg); color:var(--ghost-text);
+    border-radius:8px; padding:6px 10px; font-size:12px; cursor:pointer; font-weight:700;
+  }
+  .toggle-btn.active{background:var(--navy); color:#fff; border-color:var(--navy);}
+  .field{display:flex; flex-direction:column; gap:6px;}
+  .field > label:not(.upload-btn){font-size:12px; color:var(--muted); font-weight:600;}
+  .field input[type=text], .field select{
+    font-family:inherit; font-size:14px; padding:8px 10px; border-radius:8px;
+    border:1px solid var(--line); background:var(--input-bg); color:var(--text); width:100%;
+  }
+  .row2{display:flex; gap:10px;}
+  .row2 > .field{flex:1;}
+  input[type=color]{
+    width:100%; height:36px; border:1px solid var(--line); border-radius:8px;
+    padding:2px; background:var(--input-bg); cursor:pointer;
+  }
+  .icon-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .emoji-field{position:relative; display:flex; gap:6px; align-items:stretch;}
+  .emoji-field input[type=text]{
+    flex:1; min-width:0; font-family:inherit; font-size:18px; padding:8px 10px;
+    border-radius:8px; border:1px solid var(--line); background:var(--input-bg); color:var(--text);
+    text-align:center;
+  }
+  .emoji-pick-btn{
+    width:40px; flex-shrink:0; border:1px solid var(--line); border-radius:8px;
+    background:var(--ghost-bg); color:var(--ghost-text); cursor:pointer; font-size:14px; font-weight:700;
+  }
+  .emoji-pick-btn:hover, .emoji-pick-btn.open{background:var(--navy); color:#fff; border-color:var(--navy);}
+  .emoji-panel{
+    display:none; position:absolute; z-index:50; top:calc(100% + 6px); inset-inline-start:0;
+    width:min(280px, 72vw); max-height:220px; overflow:auto;
+    background:var(--panel-bg); border:1px solid var(--line); border-radius:12px;
+    box-shadow:0 12px 28px rgba(0,0,0,.18); padding:8px;
+  }
+  .emoji-panel.open{display:block;}
+  .emoji-panel-grid{
+    display:grid; grid-template-columns:repeat(6, 1fr); gap:4px;
+  }
+  .emoji-panel-grid button{
+    border:none; background:transparent; border-radius:8px; padding:6px 0;
+    font-size:22px; line-height:1; cursor:pointer;
+  }
+  .emoji-panel-grid button:hover{background:var(--ghost-bg);}
+  .emoji-hint{font-size:11px; color:var(--muted); margin-top:4px;}
+  .upload-btn{
+    display:block; background:#123a5e !important; color:#ffffff !important;
+    -webkit-text-fill-color:#ffffff !important;
+    border:none; padding:10px 14px; border-radius:8px;
+    font-size:14px; cursor:pointer; text-align:center; font-weight:700;
+  }
+  html.dark .upload-btn{background:#0C5484 !important; color:#ffffff !important;}
+  .ghost-btn{
+    background:var(--ghost-bg); color:var(--ghost-text); border:1px solid var(--line);
+    padding:9px 14px; border-radius:8px; font-size:13px; cursor:pointer;
+  }
+  .primary-btn{
+    background:#123a5e; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important;
+    border:none; padding:10px 14px; border-radius:8px;
+    font-size:13px; cursor:pointer; font-weight:700; flex:1;
+  }
+  html.dark .primary-btn{background:#0C5484;}
+  .btn-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .note{font-size:11.5px; color:var(--note); line-height:1.55; margin:0;}
+  .chip{
+    display:inline-block; background:var(--chip-bg); color:var(--navy);
+    font-size:11px; padding:4px 8px; border-radius:999px; font-weight:700;
+  }
+
+  .canvas-wrap{
+    flex:1 1 auto; min-width:0; width:auto;
+    display:flex; flex-direction:column;
+    align-items:center; gap:12px; padding:20px 16px 40px;
+    overflow:auto; height:100vh; background:var(--canvas-bg);
+  }
+  .export-meta{font-size:12px; color:var(--note); text-align:center; flex-shrink:0;}
+  .scene-scaler{
+    width:100%; display:flex; justify-content:center; align-items:flex-start;
+    overflow:hidden;
+  }
+
+  .scene{
+    width:420px; height:910px;
+    border-radius:28px;
+    padding:40px 28px 34px;
+    position:relative;
+    overflow:hidden;
+    transition:background .3s;
+    transform-origin:top center;
+    flex-shrink:0;
+  }
+  .scene.is-tablet{ width:780px; height:1040px; padding:48px 40px 40px; }
+  .scene.is-landscape{ width:900px; height:480px; padding:32px 40px; }
+  .scene.is-tablet.is-landscape{ width:960px; height:720px; }
+
+  .scene-title{
+    text-align:center; font-weight:800; font-size:24px; line-height:1.35; color:#111;
+    margin-bottom:6px; word-break:break-word; position:relative; z-index:5;
+  }
+  .scene.is-tablet .scene-title{font-size:34px;}
+  .scene-sub{
+    text-align:center; font-size:14px; color:#333; margin-bottom:28px;
+    word-break:break-word; position:relative; z-index:5;
+  }
+  .scene.is-tablet .scene-sub{font-size:18px; margin-bottom:36px;}
+
+  .device-stage{
+    position:relative; width:100%;
+    display:flex; align-items:center; justify-content:center;
+    min-height:520px; perspective:1200px;
+  }
+  .scene.is-tablet .device-stage{min-height:760px;}
+  .scene.is-landscape .device-stage{min-height:360px;}
+
+  .device{
+    position:relative; z-index:2;
+    background:linear-gradient(160deg,#1a1d22,#0b0c0f);
+    border-radius:42px; padding:12px;
+    box-shadow:
+      0 30px 60px rgba(0,0,0,.38),
+      0 8px 18px rgba(0,0,0,.22),
+      inset 0 0 0 2px rgba(255,255,255,.08);
+    transform: rotateY(-8deg) rotateX(4deg) translateZ(0);
+  }
+  .device.phone{ width:236px; height:492px; }
+  .device.tablet{ width:420px; height:580px; border-radius:28px; padding:14px; }
+  .scene.is-landscape .device.phone{ width:420px; height:220px; border-radius:28px; }
+  .scene.is-landscape .device.tablet{ width:640px; height:460px; }
+  .device .bezel-shine{
+    pointer-events:none; position:absolute; inset:0; border-radius:inherit;
+    background:linear-gradient(135deg,rgba(255,255,255,.16),transparent 40%,transparent 60%,rgba(255,255,255,.05));
+  }
+  .device .notch{
+    position:absolute; top:14px; left:50%; transform:translateX(-50%);
+    width:96px; height:24px; background:#0b0c0f; border-radius:16px; z-index:2;
+  }
+  .device.tablet .notch{display:none;}
+  .device.tablet .camera{
+    position:absolute; top:10px; left:50%; transform:translateX(-50%);
+    width:10px; height:10px; border-radius:50%; background:#222; z-index:2;
+    box-shadow:inset 0 0 0 2px #111;
+  }
+  .screen{
+    width:100%; height:100%; border-radius:30px; overflow:hidden; background:#eef3f7;
+    position:relative; display:flex; align-items:center; justify-content:center;
+  }
+  .device.tablet .screen{border-radius:16px;}
+  .screen img{width:100%; height:100%; object-fit:cover; display:block;}
+  .placeholder{
+    text-align:center; color:#8b98a5; font-size:13px; padding:20px; line-height:1.6;
+  }
+  .placeholder .icon{font-size:34px; display:block; margin-bottom:8px;}
+
+  .stack{
+    position:absolute; z-index:20; width:78px; height:78px;
+    transform-style:preserve-3d; pointer-events:none;
+  }
+  .stack .card{
+    position:absolute; inset:0; border-radius:22px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:34px; line-height:1;
+    background:linear-gradient(160deg,#ffffff,#f3f7fb);
+    border:1px solid rgba(255,255,255,.85);
+    box-shadow:
+      0 18px 28px rgba(18,58,94,.22),
+      0 4px 10px rgba(0,0,0,.14),
+      inset 0 1px 0 rgba(255,255,255,.9);
+  }
+  .stack .card.back{
+    transform: translate3d(10px,12px,-18px) rotate(-8deg);
+    opacity:.55; filter:blur(.2px);
+    background:linear-gradient(160deg,#e8eef4,#d9e3ec);
+  }
+  .stack .card.mid{
+    transform: translate3d(5px,6px,-9px) rotate(-3deg);
+    opacity:.82;
+  }
+  .stack .card.front{ transform: translate3d(0,0,40px) rotate(6deg); }
+  .stack.s1{ top:6%; inset-inline-start:8%; transform:rotateY(18deg) rotateX(8deg); }
+  .stack.s2{ top:10%; inset-inline-end:6%; transform:rotateY(-20deg) rotateX(6deg); }
+  .stack.s3{ bottom:16%; inset-inline-end:8%; transform:rotateY(-14deg) rotateX(-4deg); }
+  .stack.s4{ bottom:8%; inset-inline-start:10%; transform:rotateY(16deg) rotateX(-6deg); }
+  .scene.is-tablet .stack{width:96px; height:96px;}
+  .scene.is-tablet .stack .card{font-size:42px; border-radius:26px;}
+  .scene.is-tablet .stack.s1{ inset-inline-start:14%; }
+  .scene.is-tablet .stack.s2{ inset-inline-end:12%; }
+
+  .footer-brand{
+    display:flex; justify-content:center; align-items:center; gap:14px; margin-top:28px;
+    font-weight:800; font-size:18px; color:#123a5e; word-break:break-word;
+    position:relative; z-index:5;
+  }
+  .scene.is-tablet .footer-brand{font-size:24px; margin-top:36px;}
+  .footer-brand span.sep{color:#bbb; font-weight:400;}
+  .footer-logo{
+    text-align:center; margin-top:8px; font-size:12px; color:#333;
+    position:relative; z-index:5;
+  }
+
+  @media (max-width:860px){
+    .layout{flex-direction:column; overflow:auto;}
+    .panel{
+      width:100%; min-width:0; max-width:none; flex:none;
+      height:auto; max-height:46vh; position:relative;
+      border-inline-end:none; border-bottom:1px solid var(--line);
+    }
+    .canvas-wrap{height:auto; min-height:54vh;}
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+<div class="layout">
+  <div class="panel">
+    <div class="panel-top">
+      <h2 data-i18n="appTitle">منشئ صور المتجر</h2>
+      <div class="toggles">
+        <button type="button" class="toggle-btn active" id="langArBtn">AR</button>
+        <button type="button" class="toggle-btn" id="langEnBtn">EN</button>
+        <button type="button" class="toggle-btn" id="themeBtn" title="Dark mode">🌙</button>
+      </div>
+    </div>
+    <div><span class="chip" id="sizeChip">1242 × 2688</span></div>
+
+    <div class="field">
+      <label data-i18n="deviceType">نوع الجهاز</label>
+      <select id="deviceType">
+        <option value="phone" data-i18n="phone">Phone (موبايل)</option>
+        <option value="tablet" data-i18n="tablet">Tablet (تابلت)</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label data-i18n="orientation">اتجاه الشاشة</label>
+      <select id="orientation">
+        <option value="portrait" data-i18n="portrait">Portrait (عمودي)</option>
+        <option value="landscape" data-i18n="landscape">Landscape (أفقي)</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label data-i18n="exportSize">حجم التصدير (App Store / Play Store)</label>
+      <select id="exportSize"></select>
+    </div>
+
+    <div class="field">
+      <label data-i18n="template">قالب جاهز</label>
+      <select id="template">
+        <option value="tasks" data-i18n="tplTasks">شاشة إدارة المهام والمواعيد</option>
+        <option value="departments" data-i18n="tplDepartments">شاشة إدارة الأقسام والعمليات</option>
+        <option value="dashboard" data-i18n="tplDashboard">نظرة عامة شاملة للشركات</option>
+        <option value="login" data-i18n="tplLogin">شاشة تسجيل الدخول الموحدة</option>
+        <option value="blank" data-i18n="tplBlank">فارغ</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label data-i18n="title">العنوان الرئيسي</label>
+      <input type="text" id="titleInput" data-i18n-placeholder="titlePh">
+    </div>
+
+    <div class="field">
+      <label data-i18n="subtitle">العنوان الفرعي</label>
+      <input type="text" id="subInput" data-i18n-placeholder="subPh">
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label data-i18n="bg1">لون الخلفية 1</label>
+        <input type="color" id="bg1">
+      </div>
+      <div class="field">
+        <label data-i18n="bg2">لون الخلفية 2</label>
+        <input type="color" id="bg2">
+      </div>
+    </div>
+
+    <div class="field">
+      <label data-i18n="icons">أيقونات 3D المكدّسة (إيموجي)</label>
+      <div class="icon-grid">
+        <div class="emoji-field" data-icon="icon1">
+          <input type="text" id="icon1" maxlength="8" inputmode="text" autocomplete="off">
+          <button type="button" class="emoji-pick-btn" aria-label="Pick emoji">▾</button>
+        </div>
+        <div class="emoji-field" data-icon="icon2">
+          <input type="text" id="icon2" maxlength="8" inputmode="text" autocomplete="off">
+          <button type="button" class="emoji-pick-btn" aria-label="Pick emoji">▾</button>
+        </div>
+        <div class="emoji-field" data-icon="icon3">
+          <input type="text" id="icon3" maxlength="8" inputmode="text" autocomplete="off">
+          <button type="button" class="emoji-pick-btn" aria-label="Pick emoji">▾</button>
+        </div>
+        <div class="emoji-field" data-icon="icon4">
+          <input type="text" id="icon4" maxlength="8" inputmode="text" autocomplete="off">
+          <button type="button" class="emoji-pick-btn" aria-label="Pick emoji">▾</button>
+        </div>
+      </div>
+      <div class="emoji-hint" data-i18n="iconsHint">اختَر من القائمة أو اكتب/الصق أي إيموجي</div>
+      <div class="emoji-panel" id="emojiPanel">
+        <div class="emoji-panel-grid" id="emojiPanelGrid"></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label data-i18n="footerBrand">اسم الفوتر (Brand)</label>
+      <input type="text" id="footerBrand" placeholder="TasPro | CodeTech">
+    </div>
+
+    <div class="field">
+      <label data-i18n="footerText">نص الفوتر السفلي</label>
+      <input type="text" id="footerText" placeholder="© 2026 CodeTech Task Management">
+    </div>
+
+    <div class="field">
+      <label data-i18n="screenshot">صورة الشاشة (Screenshot)</label>
+      <label class="upload-btn" for="fileInput" id="uploadBtnText" data-i18n="upload">ارفع صورة</label>
+      <input type="file" id="fileInput" accept="image/*" style="display:none;">
+    </div>
+
+    <div class="btn-row">
+      <button class="ghost-btn" id="resetImgBtn" data-i18n="removeImage">إزالة الصورة</button>
+      <button class="primary-btn" id="downloadBtn" data-i18n="download">تحميل PNG بحجم المتجر</button>
+    </div>
+
+    <p class="note" data-i18n-html="note">
+      Apple: 1242×2688 / 2688×1242 / 1284×2778 / 2778×1284 — والتابلت 2048×2732 أو 2732×2048.<br>
+      Android: يفضّل 1080×1920 أو 1080×2340 للموبايل، و 1600×2560 / 1920×1200 للتابلت.
+    </p>
+  </div>
+
+  <div class="canvas-wrap">
+    <div class="export-meta" id="exportMeta">Export: Apple iPhone 6.5" · 1242 × 2688</div>
+    <div class="scene-scaler" id="sceneScaler">
+      <div class="scene" id="scene">
+        <div class="scene-title" id="sceneTitle"></div>
+        <div class="scene-sub" id="sceneSub"></div>
+
+        <div class="device-stage">
+          <div class="device phone" id="deviceFrame">
+            <div class="bezel-shine"></div>
+            <div class="notch"></div>
+            <div class="camera"></div>
+            <div class="screen" id="screenArea">
+              <div class="placeholder" id="placeholder">
+                <span class="icon">📱</span>
+                <span id="placeholderText"></span>
+              </div>
+              <img id="screenImg" alt="screenshot" style="display:none;">
+            </div>
+          </div>
+
+          <div class="stack s1" id="stack1">
+            <div class="card back"></div>
+            <div class="card mid"></div>
+            <div class="card front" id="deco1"></div>
+          </div>
+          <div class="stack s2" id="stack2">
+            <div class="card back"></div>
+            <div class="card mid"></div>
+            <div class="card front" id="deco2"></div>
+          </div>
+          <div class="stack s3" id="stack3">
+            <div class="card back"></div>
+            <div class="card mid"></div>
+            <div class="card front" id="deco3"></div>
+          </div>
+          <div class="stack s4" id="stack4">
+            <div class="card back"></div>
+            <div class="card mid"></div>
+            <div class="card front" id="deco4"></div>
+          </div>
+        </div>
+
+        <div class="footer-brand" id="footerBrandDisplay"></div>
+        <div class="footer-logo" id="footerTextDisplay"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const I18N = {
+  ar: {
+    appTitle: 'منشئ صور المتجر',
+    deviceType: 'نوع الجهاز',
+    phone: 'Phone (موبايل)',
+    tablet: 'Tablet (تابلت)',
+    orientation: 'اتجاه الشاشة',
+    portrait: 'Portrait (عمودي)',
+    landscape: 'Landscape (أفقي)',
+    exportSize: 'حجم التصدير (App Store / Play Store)',
+    template: 'قالب جاهز',
+    tplTasks: 'شاشة إدارة المهام والمواعيد',
+    tplDepartments: 'شاشة إدارة الأقسام والعمليات',
+    tplDashboard: 'نظرة عامة شاملة للشركات',
+    tplLogin: 'شاشة تسجيل الدخول الموحدة',
+    tplBlank: 'فارغ',
+    title: 'العنوان الرئيسي',
+    titlePh: 'اكتب العنوان هنا',
+    subtitle: 'العنوان الفرعي',
+    subPh: 'اكتب العنوان الفرعي',
+    bg1: 'لون الخلفية 1',
+    bg2: 'لون الخلفية 2',
+    icons: 'أيقونات 3D المكدّسة (إيموجي)',
+    iconsHint: 'اختَر من القائمة أو اكتب/الصق أي إيموجي',
+    footerBrand: 'اسم الفوتر (Brand)',
+    footerText: 'نص الفوتر السفلي',
+    screenshot: 'صورة الشاشة (Screenshot)',
+    upload: 'ارفع صورة',
+    removeImage: 'إزالة الصورة',
+    download: 'تحميل PNG بحجم المتجر',
+    exporting: 'جاري التصدير...',
+    exportFailLib: 'تعذر تحميل مكتبة التصدير.',
+    exportFail: 'حصل خطأ أثناء التصدير.',
+    placeholder: 'ارفع صورة الشاشة هنا<br>هتظهر جوه إطار الجهاز',
+    note: 'Apple: 1242×2688 / 2688×1242 / 1284×2778 / 2778×1284 — والتابلت 2048×2732 أو 2732×2048.<br>Android: يفضّل 1080×1920 أو 1080×2340 للموبايل، و 1600×2560 / 1920×1200 للتابلت.',
+  },
+  en: {
+    appTitle: 'Store Mockup Builder',
+    deviceType: 'Device type',
+    phone: 'Phone',
+    tablet: 'Tablet',
+    orientation: 'Orientation',
+    portrait: 'Portrait',
+    landscape: 'Landscape',
+    exportSize: 'Export size (App Store / Play Store)',
+    template: 'Ready template',
+    tplTasks: 'Tasks & schedule screen',
+    tplDepartments: 'Departments & operations',
+    tplDashboard: 'Corporate overview',
+    tplLogin: 'Unified login screen',
+    tplBlank: 'Blank',
+    title: 'Main title',
+    titlePh: 'Write title here',
+    subtitle: 'Subtitle',
+    subPh: 'Write subtitle here',
+    bg1: 'Background color 1',
+    bg2: 'Background color 2',
+    icons: '3D stacked icons (emoji)',
+    iconsHint: 'Pick from the list or type/paste any emoji',
+    footerBrand: 'Footer brand',
+    footerText: 'Footer text',
+    screenshot: 'Screenshot image',
+    upload: 'Upload image',
+    removeImage: 'Remove image',
+    download: 'Download store-size PNG',
+    exporting: 'Exporting...',
+    exportFailLib: 'Could not load export library.',
+    exportFail: 'Export failed.',
+    placeholder: 'Upload a screenshot here<br>It will appear inside the device frame',
+    note: 'Apple: 1242×2688 / 2688×1242 / 1284×2778 / 2778×1284 — tablet 2048×2732 or 2732×2048.<br>Android: prefer 1080×1920 or 1080×2340 for phones, and 1600×2560 / 1920×1200 for tablets.',
+  },
+};
+
+const TEMPLATES = {
+  ar: {
+    tasks: { title:'شاشة إدارة المهام والمواعيد', sub:'منصتكم الموحدة لتنظيم العمل', bg1:'#bfe4f5', bg2:'#f6c9dd', icons:['⏱️','📊','⏲️','📋'] },
+    departments: { title:'شاشة إدارة الأقسام والعمليات', sub:'منصتكم الموحدة لإدارة الفرق', bg1:'#bfe4f5', bg2:'#f6c9dd', icons:['❤️','📈','⏲️','📋'] },
+    dashboard: { title:'نظرة عامة شاملة للشركات', sub:'Comprehensive Corporate Overview', bg1:'#bfe0f7', bg2:'#eaf5ff', icons:['📈','❤️','🥧','🥧'] },
+    login: { title:'شاشة تسجيل الدخول الموحدة', sub:'تسجيل الدخول الآمن والسهل', bg1:'#bfe4f5', bg2:'#f6c9dd', icons:['🛡️','🔒','📷','⏱️'] },
+    blank: { title:'العنوان هنا', sub:'العنوان الفرعي هنا', bg1:'#e8eef3', bg2:'#e8eef3', icons:['✨','✨','✨','✨'] },
+  },
+  en: {
+    tasks: { title:'Tasks & Schedule Screen', sub:'Your unified workspace for organizing work', bg1:'#bfe4f5', bg2:'#f6c9dd', icons:['⏱️','📊','⏲️','📋'] },
+    departments: { title:'Departments & Operations', sub:'Your unified platform for team management', bg1:'#bfe4f5', bg2:'#f6c9dd', icons:['❤️','📈','⏲️','📋'] },
+    dashboard: { title:'Corporate Overview', sub:'Comprehensive corporate performance view', bg1:'#bfe0f7', bg2:'#eaf5ff', icons:['📈','❤️','🥧','🥧'] },
+    login: { title:'Unified Login Screen', sub:'Secure and simple sign-in', bg1:'#bfe4f5', bg2:'#f6c9dd', icons:['🛡️','🔒','📷','⏱️'] },
+    blank: { title:'Title here', sub:'Subtitle here', bg1:'#e8eef3', bg2:'#e8eef3', icons:['✨','✨','✨','✨'] },
+  },
+};
+
+const SIZE_PRESETS = {
+  phone: {
+    portrait: [
+      { id:'apple_6_5', label:'Apple 6.5" · 1242×2688', w:1242, h:2688, store:'Apple' },
+      { id:'apple_6_5_alt', label:'Apple 6.7" · 1284×2778', w:1284, h:2778, store:'Apple' },
+      { id:'android_1080_1920', label:'Android Phone · 1080×1920', w:1080, h:1920, store:'Android' },
+      { id:'android_1080_2340', label:'Android Phone · 1080×2340', w:1080, h:2340, store:'Android' },
+    ],
+    landscape: [
+      { id:'apple_6_5_l', label:'Apple Landscape · 2688×1242', w:2688, h:1242, store:'Apple' },
+      { id:'apple_6_7_l', label:'Apple Landscape · 2778×1284', w:2778, h:1284, store:'Apple' },
+      { id:'android_1920_1080', label:'Android Landscape · 1920×1080', w:1920, h:1080, store:'Android' },
+      { id:'android_2340_1080', label:'Android Landscape · 2340×1080', w:2340, h:1080, store:'Android' },
+    ],
+  },
+  tablet: {
+    portrait: [
+      { id:'apple_ipad_129', label:'Apple iPad 12.9" · 2048×2732', w:2048, h:2732, store:'Apple' },
+      { id:'apple_ipad_11', label:'Apple iPad 11" · 1668×2388', w:1668, h:2388, store:'Apple' },
+      { id:'android_tab_7', label:'Android Tablet 7" · 1200×1920', w:1200, h:1920, store:'Android' },
+      { id:'android_tab_10', label:'Android Tablet 10" · 1600×2560', w:1600, h:2560, store:'Android' },
+    ],
+    landscape: [
+      { id:'apple_ipad_129_l', label:'Apple iPad 12.9" · 2732×2048', w:2732, h:2048, store:'Apple' },
+      { id:'apple_ipad_11_l', label:'Apple iPad 11" · 2388×1668', w:2388, h:1668, store:'Apple' },
+      { id:'android_tab_10_l', label:'Android Tablet · 1920×1200', w:1920, h:1200, store:'Android' },
+      { id:'android_tab_10_l2', label:'Android Tablet · 2560×1600', w:2560, h:1600, store:'Android' },
+    ],
+  },
+};
+
+let lang = localStorage.getItem('mockup_lang') || 'ar';
+let dark = localStorage.getItem('mockup_dark') === '1';
+
+const el = id => document.getElementById(id);
+const scene = el('scene'), deviceFrame = el('deviceFrame');
+const sceneTitle = el('sceneTitle'), sceneSub = el('sceneSub');
+const deviceType = el('deviceType'), orientation = el('orientation'), exportSize = el('exportSize');
+const templateSel = el('template'), titleInput = el('titleInput'), subInput = el('subInput');
+const bg1 = el('bg1'), bg2 = el('bg2');
+const icon1 = el('icon1'), icon2 = el('icon2'), icon3 = el('icon3'), icon4 = el('icon4');
+const deco1 = el('deco1'), deco2 = el('deco2'), deco3 = el('deco3'), deco4 = el('deco4');
+const footerBrand = el('footerBrand'), footerText = el('footerText');
+const footerBrandDisplay = el('footerBrandDisplay'), footerTextDisplay = el('footerTextDisplay');
+const fileInput = el('fileInput'), resetImgBtn = el('resetImgBtn');
+const screenImg = el('screenImg'), placeholder = el('placeholder'), placeholderText = el('placeholderText');
+const downloadBtn = el('downloadBtn'), sizeChip = el('sizeChip'), exportMeta = el('exportMeta');
+const sceneScaler = el('sceneScaler');
+const langArBtn = el('langArBtn'), langEnBtn = el('langEnBtn'), themeBtn = el('themeBtn');
+
+function t(key){ return (I18N[lang] && I18N[lang][key]) || key; }
+
+function applyTheme(){
+  document.documentElement.classList.toggle('dark', dark);
+  themeBtn.textContent = dark ? '☀️' : '🌙';
+  themeBtn.classList.toggle('active', dark);
+  localStorage.setItem('mockup_dark', dark ? '1' : '0');
+}
+
+function applyI18n(){
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  langArBtn.classList.toggle('active', lang === 'ar');
+  langEnBtn.classList.toggle('active', lang === 'en');
+  localStorage.setItem('mockup_lang', lang);
+
+  document.querySelectorAll('[data-i18n]').forEach(node => {
+    const key = node.getAttribute('data-i18n');
+    if (node.tagName === 'OPTION') node.textContent = t(key);
+    else node.textContent = t(key);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(node => {
+    node.placeholder = t(node.getAttribute('data-i18n-placeholder'));
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(node => {
+    node.innerHTML = t(node.getAttribute('data-i18n-html'));
+  });
+  placeholderText.innerHTML = t('placeholder');
+  fillExportSizes();
+  applyDeviceChrome();
+}
+
+function currentPreset(){
+  const list = SIZE_PRESETS[deviceType.value][orientation.value];
+  return list.find(p => p.id === exportSize.value) || list[0];
+}
+
+function fillExportSizes(){
+  const prev = exportSize.value;
+  const list = SIZE_PRESETS[deviceType.value][orientation.value];
+  exportSize.innerHTML = list.map(p =>
+    `<option value="${p.id}">${p.label}</option>`
+  ).join('');
+  if (list.some(p => p.id === prev)) exportSize.value = prev;
+}
+
+function fitPreview(){
+  const wrap = document.querySelector('.canvas-wrap');
+  if(!wrap || !scene || !sceneScaler) return;
+  scene.style.transform = 'none';
+  sceneScaler.style.height = 'auto';
+
+  const availW = Math.max(220, wrap.clientWidth - 32);
+  const availH = Math.max(280, wrap.clientHeight - 56);
+  const sw = scene.offsetWidth || 420;
+  const sh = scene.offsetHeight || 910;
+  const scale = Math.min(1, availW / sw, availH / sh);
+
+  scene.style.transform = `scale(${scale})`;
+  sceneScaler.style.height = `${Math.ceil(sh * scale)}px`;
+  sceneScaler.style.width = '100%';
+}
+
+function applyDeviceChrome(){
+  const isTablet = deviceType.value === 'tablet';
+  const isLandscape = orientation.value === 'landscape';
+  scene.classList.toggle('is-tablet', isTablet);
+  scene.classList.toggle('is-landscape', isLandscape);
+  deviceFrame.classList.toggle('phone', !isTablet);
+  deviceFrame.classList.toggle('tablet', isTablet);
+
+  const preset = currentPreset();
+  sizeChip.textContent = `${preset.w} × ${preset.h}`;
+  exportMeta.textContent = `Export: ${preset.store} · ${preset.label}`;
+  requestAnimationFrame(fitPreview);
+}
+
+function render(){
+  scene.style.background = `linear-gradient(160deg, ${bg1.value}, ${bg2.value})`;
+  sceneTitle.textContent = titleInput.value;
+  sceneSub.textContent = subInput.value;
+  deco1.textContent = icon1.value;
+  deco2.textContent = icon2.value;
+  deco3.textContent = icon3.value;
+  deco4.textContent = icon4.value;
+  [deco1, deco2, deco3, deco4].forEach(front => {
+    const stack = front.parentElement;
+    stack.querySelector('.mid').textContent = front.textContent;
+    stack.querySelector('.back').textContent = front.textContent;
+  });
+  footerBrandDisplay.innerHTML = (footerBrand.value || '')
+    .split('|').map(s=>s.trim()).filter(Boolean)
+    .join(' <span class="sep">|</span> ');
+  footerTextDisplay.textContent = footerText.value;
+  applyDeviceChrome();
+}
+
+function loadTemplate(key){
+  const tpls = TEMPLATES[lang] || TEMPLATES.ar;
+  const item = tpls[key];
+  titleInput.value = item.title;
+  subInput.value = item.sub;
+  bg1.value = item.bg1;
+  bg2.value = item.bg2;
+  icon1.value = item.icons[0];
+  icon2.value = item.icons[1];
+  icon3.value = item.icons[2];
+  icon4.value = item.icons[3];
+  footerBrand.value = 'TasPro | CodeTech';
+  footerText.value = '© 2026 CodeTech Task Management';
+  render();
+}
+
+function syncSizeOptions(){
+  fillExportSizes();
+  render();
+}
+
+langArBtn.addEventListener('click', ()=>{
+  lang = 'ar';
+  applyI18n();
+  loadTemplate(templateSel.value);
+});
+langEnBtn.addEventListener('click', ()=>{
+  lang = 'en';
+  applyI18n();
+  loadTemplate(templateSel.value);
+});
+themeBtn.addEventListener('click', ()=>{
+  dark = !dark;
+  applyTheme();
+});
+
+const EMOJI_OPTIONS = [
+  '⏱️','⏰','⏲️','📅','📆','📋','📝','✅','📌','📎',
+  '📊','📈','📉','🥧','💡','🎯','🚀','⭐','✨','🔥',
+  '❤️','💙','💚','💼','🏢','👨‍💼','👩‍💻','🤝','🗣️','📢',
+  '🛡️','🔒','🔑','📷','📱','💻','🖥️','⚙️','🛠️','🧩',
+  '🔔','💬','📧','🗂️','📁','🏆','🥇','🎉','🌟','🧭',
+  '🗓️','🔎','🧾','💳','🧑‍💼','👥','🌐','⚡','📦','🧠'
+];
+
+const emojiPanel = el('emojiPanel');
+const emojiPanelGrid = el('emojiPanelGrid');
+let activeEmojiField = null;
+
+function closeEmojiPanel(){
+  emojiPanel.classList.remove('open');
+  document.querySelectorAll('.emoji-pick-btn.open').forEach(b => b.classList.remove('open'));
+  activeEmojiField = null;
+}
+
+function openEmojiPanel(fieldEl){
+  const btn = fieldEl.querySelector('.emoji-pick-btn');
+  const wasOpen = activeEmojiField === fieldEl && emojiPanel.classList.contains('open');
+  closeEmojiPanel();
+  if (wasOpen) return;
+
+  activeEmojiField = fieldEl;
+  fieldEl.appendChild(emojiPanel);
+  emojiPanel.classList.add('open');
+  btn.classList.add('open');
+}
+
+function initEmojiPicker(){
+  emojiPanelGrid.innerHTML = EMOJI_OPTIONS.map(e =>
+    `<button type="button" data-emoji="${e}" title="${e}">${e}</button>`
+  ).join('');
+
+  document.querySelectorAll('.emoji-field').forEach(fieldEl => {
+    const btn = fieldEl.querySelector('.emoji-pick-btn');
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      openEmojiPanel(fieldEl);
+    });
+  });
+
+  emojiPanelGrid.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button[data-emoji]');
+    if (!btn || !activeEmojiField) return;
+    const input = activeEmojiField.querySelector('input');
+    input.value = btn.getAttribute('data-emoji');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    closeEmojiPanel();
+  });
+
+  document.addEventListener('click', (ev) => {
+    if (!emojiPanel.classList.contains('open')) return;
+    if (ev.target.closest('.emoji-field') || ev.target.closest('#emojiPanel')) return;
+    closeEmojiPanel();
+  });
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape') closeEmojiPanel();
+  });
+}
+
+initEmojiPicker();
+
+[titleInput, subInput, bg1, bg2, icon1, icon2, icon3, icon4, footerBrand, footerText]
+  .forEach(input => input.addEventListener('input', render));
+
+templateSel.addEventListener('change', ()=> loadTemplate(templateSel.value));
+deviceType.addEventListener('change', syncSizeOptions);
+orientation.addEventListener('change', syncSizeOptions);
+exportSize.addEventListener('change', render);
+window.addEventListener('resize', applyDeviceChrome);
+
+fileInput.addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    screenImg.src = ev.target.result;
+    screenImg.style.display = 'block';
+    placeholder.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+});
+
+resetImgBtn.addEventListener('click', ()=>{
+  screenImg.src = '';
+  screenImg.style.display = 'none';
+  placeholder.style.display = 'block';
+  fileInput.value = '';
+});
+
+downloadBtn.addEventListener('click', async ()=>{
+  const preset = currentPreset();
+  downloadBtn.textContent = t('exporting');
+  const prevTransform = scene.style.transform;
+  try{
+    if(typeof html2canvas !== 'function'){
+      alert(t('exportFailLib'));
+      return;
+    }
+    scene.style.transform = 'none';
+    sceneScaler.style.height = 'auto';
+
+    // Stores reject PNG with alpha — capture + flatten to opaque RGB
+    const opaqueBg = bg1.value || '#FFFFFF';
+    const canvas = await html2canvas(scene, {
+      backgroundColor: opaqueBg,
+      scale:2,
+      useCORS:true,
+      logging:false,
+    });
+    const out = document.createElement('canvas');
+    out.width = preset.w;
+    out.height = preset.h;
+    const ctx = out.getContext('2d', { alpha: false });
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.fillStyle = opaqueBg;
+    ctx.fillRect(0, 0, out.width, out.height);
+    ctx.drawImage(canvas, 0, 0, preset.w, preset.h);
+
+    // Flatten any remaining alpha pixels to opaque background
+    const img = ctx.getImageData(0, 0, out.width, out.height);
+    const d = img.data;
+    const hex = opaqueBg.replace('#', '');
+    const br = parseInt(hex.slice(0, 2), 16);
+    const bg = parseInt(hex.slice(2, 4), 16);
+    const bb = parseInt(hex.slice(4, 6), 16);
+    for (let i = 0; i < d.length; i += 4) {
+      const a = d[i + 3] / 255;
+      if (a < 1) {
+        d[i] = Math.round(d[i] * a + br * (1 - a));
+        d[i + 1] = Math.round(d[i + 1] * a + bg * (1 - a));
+        d[i + 2] = Math.round(d[i + 2] * a + bb * (1 - a));
+        d[i + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+
+    const link = document.createElement('a');
+    link.download = `taspro_${deviceType.value}_${orientation.value}_${preset.w}x${preset.h}.png`;
+    link.href = out.toDataURL('image/png');
+    link.click();
+  }catch(err){
+    console.error(err);
+    alert(t('exportFail'));
+  } finally {
+    scene.style.transform = prevTransform || 'none';
+    fitPreview();
+    downloadBtn.textContent = t('download');
+  }
+});
+
+applyTheme();
+applyI18n();
+loadTemplate('tasks');
+window.addEventListener('load', fitPreview);
+</script>
+</body>
+</html>
